@@ -3,14 +3,18 @@
 import InputFecha from "@/components/InputFecha";
 import InputLugar from "@/components/InputLugar";
 import InputPasajero from "@/components/InputPasajero";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ButtonBuscador from "./ButtonBuscador";
 import Seleccionador from "./Seleccionador";
-import { ListaLugares } from "@/types/ListaLugares";
 
 const BuscadorVuelos = () => {
-  const [origen, setOrigen] = useState<ListaLugares | null>(null);
-  const [destino, setDestino] = useState<ListaLugares | null>(null);
+  const [origen, setOrigen] = useState<any>(null);
+  const [destino, setDestino] = useState<any>(null);
+
+  useEffect(() => {
+    
+  }, [])
+  
 
   return (
     <>

@@ -3,6 +3,8 @@
 import { ListaLugares } from "@/types/ListaLugares";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeftRight, GeoAltFill } from "react-bootstrap-icons";
+import axios from "axios";
+import { AirDestinationAirportsListResponse } from "@/types/AirDestinationAirportsListResponse";
 
 interface InputLugarProps {
   placeholder: string;
@@ -26,21 +28,19 @@ const InputLugar = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const divRef = useRef<HTMLDivElement>(null);
+  const [aeropuertos, setAeropuertos] = useState<AirDestinationAirportsListResponse | undefined>();
 
-  const listaDeLugares: ListaLugares[] = [
-    { id: 1, nombre: "Madrid", pais: "España" },
-    { id: 2, nombre: "Bogota", pais: "Colombia" },
-    { id: 3, nombre: "Santiago", pais: "Chile" },
-    { id: 4, nombre: "Buenos Aires", pais: "Argentina" },
-    { id: 5, nombre: "Lima", pais: "Perú" },
-    { id: 6, nombre: "Montevideo", pais: "Uruguay" },
-  ];
+useEffect(() => {
+  axios.get('/api/aeropuertos').then(response => setAeropuertos(response.data)).catch(error => console.error('Error fetching data:', error));
+}, [])
 
-  const filteredLugares = listaDeLugares.filter((lugar) => {
+console.log(aeropuertos)
+
+  /* const filteredLugares = aeropuertos.filter((lugar) => {
     const match = lugar.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const isSameAsRestricted = lugarRestringido?.id === lugar.id;
     return match && !isSameAsRestricted;
-  });
+  }); */
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -58,7 +58,7 @@ const InputLugar = ({
     setIsOpen(true);
   };
 
-  const handleSelectLugar = (lugar: ListaLugares) => {
+  const handleSelectLugar = (lugar: any) => {
     onSelectLugar(lugar);
     setSearchTerm(lugar.nombre);
     setIsOpen(false);
@@ -72,7 +72,7 @@ const InputLugar = ({
         className={`${classNameInput} text-xs border-gray-300 bg-[#FAFAFA] font-semibold pt-8 pb-5 relative placeholder:text-black pl-8 border border-solid w-full`}
         value={selectedValue ? selectedValue.nombre : searchTerm}
         onChange={handleChange}
-        onClick={() => filteredLugares.length > 0 && setIsOpen(true)}
+        onClick={() => setIsOpen(true)}
       />
       <GeoAltFill
         size={14}
@@ -85,18 +85,18 @@ const InputLugar = ({
           <ArrowLeftRight width={12} height={12} />
         </div>
       )}
-      {isOpen && filteredLugares.length > 0 && (
+      {isOpen  && (
         <div
           className={`${classNameDiv} absolute w-52 h-40 overflow-auto bg-white border border-gray-300 rounded-md shadow-lg -bottom-41 z-10`}
         >
-          {filteredLugares.map((lugar) => (
+          {aeropuertos?.s.Envelope.Body.AirDestinationAirportsListResponse.AirDestinationAirportsListResult.AirDestinationAirport.map((lugar) => (
             <div
-              key={lugar.id}
+              key={lugar.AirportLocationCode}
               onClick={() => handleSelectLugar(lugar)}
               className="grid grid-cols-2 py-2 px-4 hover:bg-gray-100 cursor-pointer"
             >
-              <p className="text-sm font-semibold">{lugar.nombre}</p>
-              <p className="text-gray-500 col-[1/2]">{lugar.pais}</p>
+              <p className="text-sm font-semibold">{lugar.Description}</p>
+              <p className="text-gray-500 col-[1/2]">{lugar.Country}</p>
               <GeoAltFill className="col-[2/3] row-[1/3] self-center justify-self-end" />
             </div>
           ))}
