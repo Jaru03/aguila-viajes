@@ -1,53 +1,114 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { DashCircleFill, PersonFill, PlusCircleFill } from "react-bootstrap-icons";
+import { useEffect, useRef, useState } from "react";
+import {
+  DashCircleFill,
+  PersonFill,
+  PlusCircleFill,
+} from "react-bootstrap-icons";
 
-interface InputFechaProps {
-    placeholder: string;
-    classNameInput?: string;
-    classNameDiv?: string;
+interface InputPasajeroProps {
+  placeholder: string;
+  classNameInput?: string;
+  classNameDiv?: string;
 }
 
-const InputPasajero = ({ placeholder, classNameInput, classNameDiv }: InputFechaProps) => {
+const InputPasajero = ({
+  placeholder,
+  classNameInput,
+  classNameDiv,
+}: InputPasajeroProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [adult, setAdult] = useState(0);
+  const [children, setChildren] = useState(0);
+  const [baby, setBaby] = useState(0);
 
-    const [isOpen, setIsOpen] = useState(false)
-    const [pasajero, setPajero] = useState<number>(0)
-    const [children, setChildren] = useState<number>(0)
-    const [baby, setBaby] = useState<number>(0)
+  const divElement = useRef<HTMLDivElement>(null);
 
-    const divElement = useRef<HTMLDivElement>(null);
+  const totalPassengers = adult + children + baby;
 
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (!divElement.current?.contains(e.target as Node)) setIsOpen(false);
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+  const handleValue = () => {
+    if (totalPassengers === 0) return "";
+    return `${totalPassengers} pasajer${totalPassengers === 1 ? "o" : "os"}`;
+  };
 
-    useEffect(() => { }), [pasajero, children, baby]
+  const updateCount = (
+    setter: React.Dispatch<React.SetStateAction<number>>,
+    value: number
+  ) => {
+    setter((prev) => Math.max(0, prev + value));
+  };
 
-    const handleValue = () => {
-        if (pasajero > 0 || children > 0 || baby > 0) {
-            return `${pasajero + children + baby}`
-        }
-    }
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!divElement.current?.contains(e.target as Node)) setIsOpen(false);
+    };
 
-    return (
-        <div ref={divElement} className="relative text-xs w-full md:w-1/3 px-4">
-            <input value={handleValue()} onClick={() => { setIsOpen(!isOpen) }} type="text" placeholder={placeholder} className={`${classNameInput} bg-[#FAFAFA] py-5 text-xs font-semibold pt-8 pb-5 pl-8 placeholder:text-black border border-solid md:rounded-b-lg md:rounded-t-lg border-gray-300 w-full`} />
-            <PersonFill size={15} className="absolute top-[34px] left-8" color="#22BDD9" />
-            <span className="absolute top-4 left-8 text-gray-400 ">{placeholder}</span>
-            {isOpen && (
-                <div className="absolute grid grid-rows-3 gap-4 py-2 px-4 mt-1 w-40 bg-white border border-gray-300 rounded-md shadow-lg z-10 ">
-                    <div className="flex justify-between items-center">Adulto (12+) <span className="flex items-center gap-x-2"> <DashCircleFill className="cursor-pointer" onClick={() => { pasajero <= 0 ? setPajero(0) : setPajero(pasajero - 1) }} /> {pasajero} <PlusCircleFill className="cursor-pointer" onClick={() => { setPajero(pasajero + 1) }} /></span></div>
-                    <div className="flex justify-between items-center">Niño (2-11) <span className="flex items-center gap-x-2"> <DashCircleFill className="cursor-pointer" onClick={() => { children <= 0 ? setChildren(0) : setChildren(children - 1) }} /> {children} <PlusCircleFill className="cursor-pointer" onClick={() => { setChildren(children + 1) }} /></span></div>
-                    <div className="flex justify-between items-center">Bebé (-2) <span className="flex items-center gap-x-2"> <DashCircleFill className="cursor-pointer" onClick={() => { baby <= 0 ? setBaby(0) : setBaby(baby - 1) }} /> {baby} <PlusCircleFill className="cursor-pointer" onClick={() => { setBaby(baby + 1) }} /></span></div>
-                </div>
-            )}
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  return (
+    <div ref={divElement} className="relative text-xs w-full md:w-1/3 px-4">
+      <input
+        value={handleValue()}
+        onClick={() => setIsOpen(!isOpen)}
+        type="text"
+        placeholder={placeholder}
+        className={`${classNameInput} bg-[#FAFAFA] py-5 text-xs font-semibold pt-8 pb-5 pl-8 placeholder:text-black border border-solid md:rounded-b-lg md:rounded-t-lg border-gray-300 w-full`}
+        readOnly
+      />
+      <PersonFill
+        size={15}
+        className="absolute top-[34px] left-8"
+        color="#22BDD9"
+      />
+      <span className="absolute top-4 left-8 text-gray-400">{placeholder}</span>
+
+      {isOpen && (
+        <div
+          className={`
+            absolute z-10 mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-4 
+            w-full md:min-w-[14rem]
+            left-0 sm:left-auto sm:right-0
+            ${classNameDiv}
+          `}
+        >
+          {[
+            { label: "Adulto (12+)", value: adult, set: setAdult },
+            { label: "Niño (2-11)", value: children, set: setChildren },
+            { label: "Bebé (-2)", value: baby, set: setBaby },
+          ].map(({ label, value, set }) => (
+            <div
+              key={label}
+              className="flex justify-between items-center mb-3 last:mb-0"
+            >
+              <span>{label}</span>
+              <span className="flex items-center gap-x-2">
+                <DashCircleFill
+                  className="cursor-pointer text-gray-500 hover:text-red-500"
+                  onClick={() => updateCount(set, -1)}
+                />
+                {value}
+                <PlusCircleFill
+                  className="cursor-pointer text-gray-500 hover:text-primary"
+                  onClick={() => updateCount(set, 1)}
+                />
+              </span>
+            </div>
+          ))}
         </div>
-    )
-}
+      )}
+    </div>
+  );
+};
 
-export default InputPasajero
+export default InputPasajero;
